@@ -22,4 +22,9 @@ public interface PesananService {
     // BUSINESS METHODS
     double getTotalPendapatan();
     int getJumlahPesananByStatus(String status);
+    
+    // 🔥 TAMBAHKAN METHOD BARU
+    int getTotalPesananCount();
+    List<Pesanan> searchPesanan(String keyword);
+    void printStatistics();
 }
