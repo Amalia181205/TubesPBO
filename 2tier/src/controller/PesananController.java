@@ -3,22 +3,16 @@ package src.controller;
 import src.model.Pesanan;
 import src.service.PesananService;
 import src.service.PesananServiceDefault;
-import src.view.RiwayatPesananPanel;
 import java.util.List;
 import java.util.ArrayList;
 
 public class PesananController {
     
     private final PesananService pesananService;
-    private RiwayatPesananPanel view;
     
     public PesananController() {
         this.pesananService = new PesananServiceDefault();
         System.out.println("🎮 Controller Pesanan siap!");
-    }
-    
-    public void setView(RiwayatPesananPanel view) {
-        this.view = view;
     }
     
     // ========== CREATE ==========
@@ -27,21 +21,14 @@ public class PesananController {
             System.out.println("🎮 Controller: Memproses tambah pesanan...");
             boolean success = pesananService.tambahPesanan(pesanan);
             
-            if (success && view != null) {
-                view.refreshTable();
-                showMessage("✅ Pesanan berhasil ditambahkan!");
+            if (success) {
+                System.out.println("✅ Pesanan berhasil ditambahkan!");
+                return true;
             }
-            
-            return success;
+            return false;
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal tambah pesanan: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Gagal tambah pesanan: " + e.getMessage());
             return false;
         }
     }
@@ -53,14 +40,8 @@ public class PesananController {
             return pesananService.getAllPesanan();
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal mengambil data: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
-            return new ArrayList<>(); // Return empty list
+            System.err.println("❌ Gagal mengambil data: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
     
@@ -70,13 +51,7 @@ public class PesananController {
             return pesananService.getPesananById(id);
             
         } catch (Exception e) {
-            String errorMsg = "❌ Pesanan tidak ditemukan: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Pesanan tidak ditemukan: " + e.getMessage());
             return null;
         }
     }
@@ -87,21 +62,14 @@ public class PesananController {
             System.out.println("🎮 Controller: Memproses update pesanan ID " + pesanan.getId());
             boolean success = pesananService.updatePesanan(pesanan);
             
-            if (success && view != null) {
-                view.refreshTable();
-                showMessage("✅ Pesanan berhasil diupdate!");
+            if (success) {
+                System.out.println("✅ Pesanan berhasil diupdate!");
+                return true;
             }
-            
-            return success;
+            return false;
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal update pesanan: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Gagal update pesanan: " + e.getMessage());
             return false;
         }
     }
@@ -111,21 +79,14 @@ public class PesananController {
             System.out.println("🎮 Controller: Mengubah status pesanan ID " + id + " -> " + status);
             boolean success = pesananService.ubahStatusPesanan(id, status);
             
-            if (success && view != null) {
-                view.refreshTable();
-                showMessage("✅ Status berhasil diubah!");
+            if (success) {
+                System.out.println("✅ Status berhasil diubah!");
+                return true;
             }
-            
-            return success;
+            return false;
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal ubah status: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Gagal ubah status: " + e.getMessage());
             return false;
         }
     }
@@ -136,21 +97,14 @@ public class PesananController {
             System.out.println("🎮 Controller: Memproses hapus pesanan ID " + id);
             boolean success = pesananService.hapusPesanan(id);
             
-            if (success && view != null) {
-                view.refreshTable();
-                showMessage("✅ Pesanan berhasil dihapus!");
+            if (success) {
+                System.out.println("✅ Pesanan berhasil dihapus!");
+                return true;
             }
-            
-            return success;
+            return false;
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal hapus pesanan: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Gagal hapus pesanan: " + e.getMessage());
             return false;
         }
     }
@@ -162,13 +116,7 @@ public class PesananController {
             return pesananService.getPesananByStatus(status);
             
         } catch (Exception e) {
-            String errorMsg = "❌ Gagal filter pesanan: " + e.getMessage();
-            System.err.println(errorMsg);
-            
-            if (view != null) {
-                view.showErrorMessage(errorMsg);
-            }
-            
+            System.err.println("❌ Gagal filter pesanan: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -188,13 +136,6 @@ public class PesananController {
         } catch (Exception e) {
             System.err.println("❌ Gagal menghitung jumlah pesanan: " + e.getMessage());
             return 0;
-        }
-    }
-    
-    // ========== HELPER METHODS ==========
-    private void showMessage(String message) {
-        if (view != null) {
-            view.showMessage(message);
         }
     }
     

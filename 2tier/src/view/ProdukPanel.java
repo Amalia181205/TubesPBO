@@ -17,23 +17,17 @@ public class ProdukPanel extends JPanel {
     private JLabel lblTotalHarga;
     private BigDecimal totalHarga = BigDecimal.ZERO;
 
-    // ✅ WARNA YANG SAMA DENGAN VERSI BAWAH
-    private final Color BORDER_PAKET = new Color(0, 122, 255);     // Biru terang
-    private final Color BORDER_SEWA = new Color(142, 68, 173);     // Ungu terang
-    private final Color BORDER_WEEDING = new Color(230, 126, 34);  // Oranye terang
+    private final Color BORDER_PAKET = new Color(0, 122, 255);
+    private final Color BORDER_SEWA = new Color(142, 68, 173);
+    private final Color BORDER_WEEDING = new Color(230, 126, 34);
 
     public ProdukPanel() {
         controller = new ProdukController();
         setLayout(new BorderLayout());
-
-        // 🔥 PENTING UNTUK SCROLL
-        setPreferredSize(new Dimension(1100, 1400));
-
         initComponents();
     }
 
     private void initComponents() {
-
         categoryTabs = new JTabbedPane(JTabbedPane.TOP);
         categoryTabs.setFont(new Font("Arial", Font.BOLD, 14));
 
@@ -50,7 +44,7 @@ public class ProdukPanel extends JPanel {
 
         JLabel lblTotal = new JLabel("Total Belanja:");
         lblTotal.setFont(new Font("Arial", Font.BOLD, 16));
-        lblTotal.setForeground(Color.BLACK); // ✅ Warna hitam
+        lblTotal.setForeground(Color.BLACK);
 
         lblTotalHarga = new JLabel("Rp 0");
         lblTotalHarga.setFont(new Font("Arial", Font.BOLD, 18));
@@ -67,13 +61,10 @@ public class ProdukPanel extends JPanel {
         btnCheckout.setFont(new Font("Arial", Font.BOLD, 14));
         btnCheckout.setBackground(new Color(46, 204, 113));
         btnCheckout.setForeground(Color.WHITE);
-
-        // 🔥 FIX BUTTON WINDOWS
         btnCheckout.setOpaque(true);
         btnCheckout.setContentAreaFilled(true);
         btnCheckout.setBorderPainted(false);
         btnCheckout.setFocusPainted(false);
-
         btnCheckout.setPreferredSize(new Dimension(160, 40));
         btnCheckout.addActionListener(e -> checkout());
 
@@ -88,15 +79,16 @@ public class ProdukPanel extends JPanel {
     private JScrollPane wrapScrollable(JPanel panel) {
         JScrollPane scroll = new JScrollPane(panel);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // ✅ Izinkan horizontal scroll
         scroll.getVerticalScrollBar().setUnitIncrement(25);
+        scroll.getHorizontalScrollBar().setUnitIncrement(25);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         return scroll;
     }
 
     private JPanel createCategoryPanel(String category) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        // ✅ PERUBAHAN: Gunakan FlowLayout dengan orientasi HORIZONTAL
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20)); // ✅ Spasi horizontal 20px
         panel.setBackground(Color.WHITE);
 
         JLabel title = new JLabel(category + " FOTO", SwingConstants.CENTER);
@@ -104,11 +96,21 @@ public class ProdukPanel extends JPanel {
         title.setForeground(getCategoryColor(category));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(20));
+        // ✅ Buat panel khusus untuk title
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.add(Box.createVerticalStrut(15));
+        titlePanel.add(title);
+        titlePanel.add(Box.createVerticalStrut(20));
 
-        return panel;
+        // ✅ Bungkus dalam container dengan BorderLayout
+        JPanel container = new JPanel(new BorderLayout());
+        container.setBackground(Color.WHITE);
+        container.add(titlePanel, BorderLayout.NORTH);
+        container.add(panel, BorderLayout.CENTER);
+
+        return container;
     }
 
     private void loadProducts() {
@@ -116,17 +118,16 @@ public class ProdukPanel extends JPanel {
 
         for (String cat : categories) {
             List<Produk> list = controller.getProdukByJenis(cat);
-            JPanel panel = getCategoryPanel(cat);
+            JPanel panel = getCategoryContentPanel(cat); // ✅ Ambil panel FlowLayout
 
             for (Produk p : list) {
                 panel.add(createProductCard(p));
-                panel.add(Box.createVerticalStrut(15));
             }
-            panel.add(Box.createVerticalGlue());
         }
     }
 
-    private JPanel getCategoryPanel(String category) {
+    // ✅ Method baru untuk mendapatkan panel FlowLayout (bukan container)
+    private JPanel getCategoryContentPanel(String category) {
         JScrollPane scroll;
         switch (category) {
             case "PAKET":
@@ -141,119 +142,70 @@ public class ProdukPanel extends JPanel {
             default:
                 scroll = (JScrollPane) categoryTabs.getComponentAt(0);
         }
-        return (JPanel) scroll.getViewport().getView();
+        
+        JPanel container = (JPanel) scroll.getViewport().getView();
+        BorderLayout layout = (BorderLayout) container.getLayout();
+        return (JPanel) layout.getLayoutComponent(BorderLayout.CENTER);
     }
 
     private JPanel createProductCard(Produk produk) {
-
         Color borderColor = getCategoryColor(produk.getJenis());
 
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
-        card.setMaximumSize(new Dimension(420, 340));
-        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // ✅ UKURAN KARTU YANG LEBIH SESUAI UNTUK LAYOUT HORIZONTAL
+        card.setPreferredSize(new Dimension(320, 340)); // ✅ Lebar tetap, tinggi fleksibel
+        card.setMinimumSize(new Dimension(320, 340));
+        card.setMaximumSize(new Dimension(320, 340));
+        
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // ✅ BORDER DENGAN WARNA YANG SAMA DENGAN VERSI BAWAH
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(borderColor, 2),
-                BorderFactory.createLineBorder(new Color(240, 240, 240), 3)
-            ),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
         JLabel lblNama = new JLabel(produk.getNama());
         lblNama.setFont(new Font("Arial", Font.BOLD, 17));
-        lblNama.setForeground(borderColor.darker()); // ✅ Sedikit lebih gelap dari border
+        lblNama.setForeground(borderColor.darker());
         lblNama.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        card.add(lblNama);
-        card.add(Box.createVerticalStrut(5));
-        
-        // ✅ BOOKING INFO DENGAN WARNA ABU-ABU
-        JLabel lblBooking = new JLabel("📅 Booking: yy-xx-zz");
-        lblBooking.setFont(new Font("Arial", Font.PLAIN, 12));
-        lblBooking.setForeground(new Color(100, 100, 100));
-        lblBooking.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(lblBooking);
-        
-        card.add(Box.createVerticalStrut(5));
 
         NumberFormat rupiah = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"));
         JLabel lblHarga = new JLabel("💰 Price: " + rupiah.format(produk.getHarga()));
         lblHarga.setFont(new Font("Arial", Font.BOLD, 14));
-        lblHarga.setForeground(new Color(231, 76, 60)); // ✅ Merah untuk harga
+        lblHarga.setForeground(new Color(231, 76, 60));
         lblHarga.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        card.add(lblNama);
+        card.add(Box.createVerticalStrut(5));
         card.add(lblHarga);
         card.add(Box.createVerticalStrut(15));
 
-        // ✅ DESCRIPTION PANEL DENGAN BACKGROUND ABU-ABU
-        JPanel descPanel = new JPanel();
-        descPanel.setLayout(new BoxLayout(descPanel, BoxLayout.Y_AXIS));
-        descPanel.setBackground(new Color(242, 242, 242));
-        descPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-            BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        descPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        descPanel.setMaximumSize(new Dimension(380, 100));
-        
-        String[] lines = produk.getDeskripsi().split("\n");
-        for (String line : lines) {
-            JLabel lblDesc = new JLabel("• " + line);
-            lblDesc.setFont(new Font("Arial", Font.PLAIN, 11));
-            lblDesc.setForeground(new Color(60, 60, 60)); // ✅ Warna gelap untuk kontras
-            lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
-            descPanel.add(lblDesc);
-        }
-        
-        card.add(descPanel);
-        card.add(Box.createVerticalStrut(15));
-
-        // ✅ QUANTITY SELECTOR YANG LEBIH BAIK
         JPanel qtyPanel = new JPanel(new FlowLayout());
-        qtyPanel.setBackground(Color.WHITE);
-        
-        JLabel lblQty = new JLabel("Jumlah:");
-        lblQty.setFont(new Font("Arial", Font.BOLD, 13));
-        lblQty.setForeground(Color.BLACK); // ✅ Warna hitam
-        
         JLabel lblJumlah = new JLabel("0");
         lblJumlah.setFont(new Font("Arial", Font.BOLD, 16));
-        lblJumlah.setForeground(Color.BLACK); // ✅ Warna hitam
 
-        // ✅ PANEL UNTUK QUANTITY DENGAN BORDER
-        JPanel quantityContainer = new JPanel(new BorderLayout());
-        quantityContainer.setBackground(Color.WHITE);
-        quantityContainer.setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180), 1));
-        quantityContainer.setPreferredSize(new Dimension(60, 35));
-        quantityContainer.add(lblJumlah, BorderLayout.CENTER);
-
-        // ✅ TOMBOL MINUS DENGAN WARNA MERAH
+        JButton btnPlus = new JButton("+");
         JButton btnMinus = new JButton("−");
+
+        // ✅ STYLING TOMBOL +/- YANG LEBIH BAIK
         btnMinus.setFont(new Font("Arial", Font.BOLD, 16));
         btnMinus.setBackground(new Color(220, 50, 50));
         btnMinus.setForeground(Color.WHITE);
         btnMinus.setFocusPainted(false);
-        btnMinus.setBorder(BorderFactory.createRaisedBevelBorder());
-        btnMinus.setPreferredSize(new Dimension(40, 35));
-        btnMinus.setOpaque(true);
-        btnMinus.setContentAreaFilled(true);
         btnMinus.setBorderPainted(false);
+        btnMinus.setOpaque(true);
+        btnMinus.setPreferredSize(new Dimension(35, 35));
 
-        // ✅ TOMBOL PLUS DENGAN WARNA HIJAU
-        JButton btnPlus = new JButton("+");
         btnPlus.setFont(new Font("Arial", Font.BOLD, 16));
         btnPlus.setBackground(new Color(50, 180, 50));
         btnPlus.setForeground(Color.WHITE);
         btnPlus.setFocusPainted(false);
-        btnPlus.setBorder(BorderFactory.createRaisedBevelBorder());
-        btnPlus.setPreferredSize(new Dimension(40, 35));
-        btnPlus.setOpaque(true);
-        btnPlus.setContentAreaFilled(true);
         btnPlus.setBorderPainted(false);
+        btnPlus.setOpaque(true);
+        btnPlus.setPreferredSize(new Dimension(35, 35));
 
         btnPlus.addActionListener(e -> {
             int q = Integer.parseInt(lblJumlah.getText()) + 1;
@@ -269,49 +221,32 @@ public class ProdukPanel extends JPanel {
             }
         });
 
-        qtyPanel.add(lblQty);
+        qtyPanel.add(new JLabel("Jumlah:"));
         qtyPanel.add(btnMinus);
-        qtyPanel.add(quantityContainer);
+        
+        // ✅ PANEL UNTUK QUANTITY DENGAN BORDER
+        JPanel quantityPanel = new JPanel(new BorderLayout());
+        quantityPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        quantityPanel.setPreferredSize(new Dimension(50, 35));
+        lblJumlah.setHorizontalAlignment(SwingConstants.CENTER);
+        quantityPanel.add(lblJumlah, BorderLayout.CENTER);
+        
+        qtyPanel.add(quantityPanel);
         qtyPanel.add(btnPlus);
 
         card.add(qtyPanel);
         card.add(Box.createVerticalStrut(15));
 
-        // ✅ BUY NOW BUTTON DENGAN WARNA TERANG
         JButton btnBuy = new JButton("🛒 BUY NOW");
         btnBuy.setFont(new Font("Arial", Font.BOLD, 14));
-        
-        // ✅ WARNA YANG SAMA DENGAN VERSI BAWAH
-        Color btnBuyColor = borderColor;
-        
-        btnBuy.setBackground(btnBuyColor);
+        btnBuy.setBackground(borderColor);
         btnBuy.setForeground(Color.WHITE);
-
-        // 🔥 FIX BUTTON
         btnBuy.setOpaque(true);
         btnBuy.setContentAreaFilled(true);
         btnBuy.setBorderPainted(false);
         btnBuy.setFocusPainted(false);
-
-        // ✅ BORDER UNTUK KONTRASTING
-        btnBuy.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(btnBuyColor.darker(), 3),
-            BorderFactory.createEmptyBorder(12, 35, 12, 35)
-        ));
-
         btnBuy.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnBuy.setPreferredSize(new Dimension(180, 45));
-
-        // ✅ EFEK HOVER (sama dengan versi bawah)
-        btnBuy.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnBuy.setBackground(btnBuyColor.brighter());
-            }
-            
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnBuy.setBackground(btnBuyColor);
-            }
-        });
 
         btnBuy.addActionListener(e -> {
             int qty = Integer.parseInt(lblJumlah.getText());
@@ -365,7 +300,7 @@ public class ProdukPanel extends JPanel {
             return;
         }
 
-        // ✅ CHECKOUT DIALOG YANG SAMA DENGAN VERSI BAWAH
+        // Checkout dialog
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
         panel.add(new JLabel("Nama Pemesan:"));
         JTextField txtNama = new JTextField();
@@ -407,8 +342,8 @@ public class ProdukPanel extends JPanel {
         }
     }
 
-    public void refreshProducts() {
+    public void setRiwayatPanel(RiwayatPesananCRUDPanel riwayatPanel) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'refreshProducts'");
+        throw new UnsupportedOperationException("Unimplemented method 'setRiwayatPanel'");
     }
 }
