@@ -122,6 +122,8 @@ public class RiwayatPesananCRUDPanel extends JPanel {
                 p.getStatus()
             });
         }
+        
+        System.out.println("📊 Loaded " + pesananList.size() + " pesanan ke tabel");
     }
     
     private void tambahPesanan() {
@@ -144,16 +146,19 @@ public class RiwayatPesananCRUDPanel extends JPanel {
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         
         if (result == JOptionPane.OK_OPTION) {
-            Pesanan pesanan = new Pesanan();
-            pesanan.setPemesan(txtNama.getText());
-            pesanan.setProduk(txtProduk.getText());
-            pesanan.setTotal(new BigDecimal(txtTotal.getText()));
-            pesanan.setStatus((String) comboStatus.getSelectedItem());
-            pesanan.setTanggalPesan(java.time.LocalDateTime.now());
-            
-            if (controller.tambahPesanan(pesanan)) {
-                JOptionPane.showMessageDialog(this, "Pesanan berhasil ditambahkan!");
-                loadData();
+            try {
+                Pesanan pesanan = new Pesanan();
+                pesanan.setPemesan(txtNama.getText());
+                pesanan.setProduk(txtProduk.getText());
+                pesanan.setTotal(new BigDecimal(txtTotal.getText()));
+                pesanan.setStatus((String) comboStatus.getSelectedItem());
+                
+                if (controller.tambahPesanan(pesanan)) {
+                    JOptionPane.showMessageDialog(this, "Pesanan berhasil ditambahkan!");
+                    loadData();
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Format total tidak valid!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -169,9 +174,40 @@ public class RiwayatPesananCRUDPanel extends JPanel {
         Pesanan pesanan = controller.getPesananById(id);
         
         if (pesanan != null) {
-            // Dialog edit (sama seperti tambah, tapi dengan data yang sudah ada)
-            JOptionPane.showMessageDialog(this, "Edit pesanan #" + id);
-            loadData();
+            JTextField txtNama = new JTextField(pesanan.getPemesan());
+            JTextField txtProduk = new JTextField(pesanan.getProduk());
+            JTextField txtTotal = new JTextField(pesanan.getTotal() != null ? pesanan.getTotal().toString() : "0");
+            JComboBox<String> comboStatus = new JComboBox<>(new String[]{"PROSES", "SUKSES", "BATAL"});
+            comboStatus.setSelectedItem(pesanan.getStatus());
+            
+            JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+            panel.add(new JLabel("Nama Pemesan:"));
+            panel.add(txtNama);
+            panel.add(new JLabel("Produk:"));
+            panel.add(txtProduk);
+            panel.add(new JLabel("Total:"));
+            panel.add(txtTotal);
+            panel.add(new JLabel("Status:"));
+            panel.add(comboStatus);
+            
+            int result = JOptionPane.showConfirmDialog(this, panel, "Edit Pesanan #" + id, 
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    pesanan.setPemesan(txtNama.getText());
+                    pesanan.setProduk(txtProduk.getText());
+                    pesanan.setTotal(new BigDecimal(txtTotal.getText()));
+                    pesanan.setStatus((String) comboStatus.getSelectedItem());
+                    
+                    if (controller.updatePesanan(pesanan)) {
+                        JOptionPane.showMessageDialog(this, "Pesanan berhasil diupdate!");
+                        loadData();
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Format total tidak valid!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
     
@@ -211,6 +247,8 @@ public class RiwayatPesananCRUDPanel extends JPanel {
             panel.add(new JLabel(String.valueOf(pesanan.getId())));
             panel.add(new JLabel("Pemesan:"));
             panel.add(new JLabel(pesanan.getPemesan()));
+            panel.add(new JLabel("Telepon:"));
+            panel.add(new JLabel(pesanan.getTelepon() != null && !pesanan.getTelepon().isEmpty() ? pesanan.getTelepon() : "-"));
             panel.add(new JLabel("Produk:"));
             panel.add(new JLabel(pesanan.getProduk()));
             panel.add(new JLabel("Total:"));
@@ -222,7 +260,7 @@ public class RiwayatPesananCRUDPanel extends JPanel {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
             panel.add(new JLabel(pesanan.getTanggalPesan() != null ? pesanan.getTanggalPesan().format(fmt) : "-"));
             
-            JOptionPane.showMessageDialog(this, panel, "Detail Pesanan", 
+            JOptionPane.showMessageDialog(this, panel, "Detail Pesanan #" + id, 
                     JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -250,22 +288,70 @@ public class RiwayatPesananCRUDPanel extends JPanel {
                 p.getStatus()
             });
         }
+        
+        System.out.println("🔍 Filtered by status '" + status + "': " + filteredList.size() + " pesanan");
     }
     
-    // Method untuk ditambah dari ProdukPanel setelah checkout
-    public void tambahPesananDariCheckout(String nama, String telepon, BigDecimal total, String produk) {
-        Pesanan pesanan = new Pesanan();
-        pesanan.setPemesan(nama);
-        pesanan.setTelepon(telepon);
-        pesanan.setTotal(total);
-        pesanan.setProduk(produk);
-        pesanan.setStatus("PROSES");
-        pesanan.setTanggalPesan(java.time.LocalDateTime.now());
+    // 🔥 METHOD UTAMA: Untuk menerima data dari ProdukPanel (6 PARAMETER)
+    // 🔥 PERBAIKAN: Hanya simpan ke database, TIDAK tampilkan JOptionPane di sini
+    public boolean tambahPesananDariCheckout(String nama, String telepon, BigDecimal total, String produk, String email, String jadwal) {
+        System.out.println("📥 Menerima data checkout dari ProdukPanel:");
+        System.out.println("   Nama: " + nama);
+        System.out.println("   Telepon: " + telepon);
+        System.out.println("   Total: " + total);
+        System.out.println("   Produk: " + produk);
+        System.out.println("   Email: " + email);
+        System.out.println("   Jadwal: " + jadwal);
         
-        if (controller.tambahPesanan(pesanan)) {
-            System.out.println("✅ Pesanan dari checkout berhasil disimpan!");
-            loadData();
+        try {
+            // Buat objek Pesanan
+            Pesanan pesanan = new Pesanan();
+            pesanan.setPemesan(nama);
+            pesanan.setTelepon(telepon);
+            pesanan.setTotal(total);
+            pesanan.setProduk(produk);
+            pesanan.setStatus("PROSES");
+            
+            // Coba set email jika method ada
+            try {
+                pesanan.setEmail(email);
+            } catch (Exception e) {
+                System.out.println("⚠️ Method setEmail() tidak tersedia, diabaikan");
+            }
+            
+            // Coba set jadwal jika method ada
+            try {
+                pesanan.setJadwal(jadwal);
+            } catch (Exception e) {
+                System.out.println("⚠️ Method setJadwal() tidak tersedia, diabaikan");
+            }
+            
+            // Simpan melalui controller
+            boolean success = controller.tambahPesanan(pesanan);
+            
+            if (success) {
+                System.out.println("✅ Pesanan dari checkout berhasil disimpan ke database! ID: " + pesanan.getId());
+                
+                // 🔥 PERBAIKAN: TIDAK tampilkan JOptionPane di sini
+                // Biarkan ProdukPanel yang menampilkan notifikasi
+                
+                // Refresh tabel
+                loadData();
+                return true;
+            } else {
+                System.err.println("❌ Gagal menyimpan pesanan ke database!");
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error dalam tambahPesananDariCheckout: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Gagal menyimpan pesanan: " + e.getMessage(), e);
         }
+    }
+    
+    // 🔥 Method untuk integrasi - VERSI SEDERHANA (4 parameter)
+    public boolean tambahPesananDariCheckoutSimple(String nama, String telepon, BigDecimal total, String produk) {
+        return tambahPesananDariCheckout(nama, telepon, total, produk, "", "");
     }
     
     // 🔥 Method untuk integrasi

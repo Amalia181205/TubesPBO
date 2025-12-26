@@ -16,6 +16,11 @@ public class Pesanan {
     private String keterangan;
     private LocalDateTime tanggalUpdate;
     
+    // 🔥 TAMBAH FIELD BARU SESUAI DATABASE
+    private String jadwal; // Format: "yyyy-MM-dd"
+    private String kodePesanan;
+    private String alamat;
+    
     // Constructor
     public Pesanan() {
         this.tanggalPesan = LocalDateTime.now();
@@ -33,7 +38,8 @@ public class Pesanan {
     
     // Constructor lengkap
     public Pesanan(Integer id, String produk, String pemesan, String telepon, String email,
-                   LocalDateTime tanggalPesan, BigDecimal total, String status, String keterangan) {
+                   LocalDateTime tanggalPesan, BigDecimal total, String status, 
+                   String keterangan, String jadwal, String kodePesanan, String alamat) {
         this.id = id;
         this.produk = produk;
         this.pemesan = pemesan;
@@ -44,6 +50,9 @@ public class Pesanan {
         this.status = status;
         this.keterangan = keterangan;
         this.tanggalUpdate = LocalDateTime.now();
+        this.jadwal = jadwal;
+        this.kodePesanan = kodePesanan;
+        this.alamat = alamat;
     }
     
     // Getter dan Setter
@@ -80,6 +89,16 @@ public class Pesanan {
     public LocalDateTime getTanggalUpdate() { return tanggalUpdate; }
     public void setTanggalUpdate(LocalDateTime tanggalUpdate) { this.tanggalUpdate = tanggalUpdate; }
     
+    // 🔥 GETTER/SETTER FIELD BARU
+    public String getJadwal() { return jadwal; }
+    public void setJadwal(String jadwal) { this.jadwal = jadwal; }
+    
+    public String getKodePesanan() { return kodePesanan; }
+    public void setKodePesanan(String kodePesanan) { this.kodePesanan = kodePesanan; }
+    
+    public String getAlamat() { return alamat; }
+    public void setAlamat(String alamat) { this.alamat = alamat; }
+    
     // Compatibility methods
     public String getNamaProduk() { return produk; }
     public void setNamaProduk(String namaProduk) { this.produk = namaProduk; }
@@ -90,10 +109,13 @@ public class Pesanan {
     public BigDecimal getTotalHarga() { return total; }
     public void setTotalHarga(BigDecimal totalHarga) { this.total = totalHarga; }
     
+    public String getJadwalFoto() { return jadwal; }
+    public void setJadwalFoto(String jadwalFoto) { this.jadwal = jadwalFoto; }
+    
     @Override
     public String toString() {
-        return String.format("Pesanan[ID=%d, Produk=%s, Pemesan=%s, Status=%s]", 
-            id, produk, pemesan, status);
+        return String.format("Pesanan[ID=%d, Kode=%s, Pemesan=%s, Status=%s, Total=%,.2f]", 
+            id, kodePesanan, pemesan, status, total != null ? total.doubleValue() : 0);
     }
     
     // Status check methods
@@ -134,6 +156,17 @@ public class Pesanan {
         return tanggalUpdate.format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
     
+    public String getFormattedJadwal() {
+        if (jadwal == null || jadwal.trim().isEmpty()) return "-";
+        try {
+            // Konversi dari yyyy-MM-dd ke dd-MM-yyyy
+            java.time.LocalDate date = java.time.LocalDate.parse(jadwal);
+            return date.format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        } catch (Exception e) {
+            return jadwal; // Return as-is jika parsing gagal
+        }
+    }
+    
     public String getFormattedTotal() {
         if (total == null) return "Rp 0";
         java.text.NumberFormat rupiahFormat = java.text.NumberFormat.getCurrencyInstance(
@@ -146,5 +179,14 @@ public class Pesanan {
         return produk != null && !produk.trim().isEmpty() &&
                pemesan != null && !pemesan.trim().isEmpty() &&
                total != null && total.compareTo(BigDecimal.ZERO) > 0;
+    }
+    
+    // Method untuk generate kode pesanan (jika belum ada)
+    public String generateKodePesanan() {
+        if (kodePesanan == null || kodePesanan.trim().isEmpty()) {
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            return "PSN-" + timestamp.substring(timestamp.length() - 6);
+        }
+        return kodePesanan;
     }
 }

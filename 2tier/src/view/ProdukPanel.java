@@ -16,6 +16,7 @@ public class ProdukPanel extends JPanel {
     private JTabbedPane categoryTabs;
     private JLabel lblTotalHarga;
     private BigDecimal totalHarga = BigDecimal.ZERO;
+    private RiwayatPesananCRUDPanel riwayatPanel;
 
     private final Color BORDER_PAKET = new Color(0, 122, 255);
     private final Color BORDER_SEWA = new Color(142, 68, 173);
@@ -75,11 +76,15 @@ public class ProdukPanel extends JPanel {
         loadProducts();
     }
 
+    public void setRiwayatPanel(RiwayatPesananCRUDPanel riwayatPanel) {
+        this.riwayatPanel = riwayatPanel;
+    }
+
     // ================= SCROLL HELPER =================
     private JScrollPane wrapScrollable(JPanel panel) {
         JScrollPane scroll = new JScrollPane(panel);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // ✅ Izinkan horizontal scroll
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.getVerticalScrollBar().setUnitIncrement(25);
         scroll.getHorizontalScrollBar().setUnitIncrement(25);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -87,8 +92,7 @@ public class ProdukPanel extends JPanel {
     }
 
     private JPanel createCategoryPanel(String category) {
-        // ✅ PERUBAHAN: Gunakan FlowLayout dengan orientasi HORIZONTAL
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20)); // ✅ Spasi horizontal 20px
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
         panel.setBackground(Color.WHITE);
 
         JLabel title = new JLabel(category + " FOTO", SwingConstants.CENTER);
@@ -96,7 +100,6 @@ public class ProdukPanel extends JPanel {
         title.setForeground(getCategoryColor(category));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // ✅ Buat panel khusus untuk title
         JPanel titlePanel = new JPanel();
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.setBackground(Color.WHITE);
@@ -104,7 +107,6 @@ public class ProdukPanel extends JPanel {
         titlePanel.add(title);
         titlePanel.add(Box.createVerticalStrut(20));
 
-        // ✅ Bungkus dalam container dengan BorderLayout
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(Color.WHITE);
         container.add(titlePanel, BorderLayout.NORTH);
@@ -118,7 +120,7 @@ public class ProdukPanel extends JPanel {
 
         for (String cat : categories) {
             List<Produk> list = controller.getProdukByJenis(cat);
-            JPanel panel = getCategoryContentPanel(cat); // ✅ Ambil panel FlowLayout
+            JPanel panel = getCategoryContentPanel(cat);
 
             for (Produk p : list) {
                 panel.add(createProductCard(p));
@@ -126,7 +128,6 @@ public class ProdukPanel extends JPanel {
         }
     }
 
-    // ✅ Method baru untuk mendapatkan panel FlowLayout (bukan container)
     private JPanel getCategoryContentPanel(String category) {
         JScrollPane scroll;
         switch (category) {
@@ -155,10 +156,10 @@ public class ProdukPanel extends JPanel {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
         
-        // ✅ UKURAN KARTU YANG LEBIH SESUAI UNTUK LAYOUT HORIZONTAL
-        card.setPreferredSize(new Dimension(320, 340)); // ✅ Lebar tetap, tinggi fleksibel
-        card.setMinimumSize(new Dimension(320, 340));
-        card.setMaximumSize(new Dimension(320, 340));
+        // 🔥 PERBAIKAN: Tinggi kartu ditambah untuk menampung deskripsi
+        card.setPreferredSize(new Dimension(320, 380));
+        card.setMinimumSize(new Dimension(320, 380));
+        card.setMaximumSize(new Dimension(320, 380));
         
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -167,22 +168,59 @@ public class ProdukPanel extends JPanel {
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
+        // 🔥 1. NAMA PRODUK
         JLabel lblNama = new JLabel(produk.getNama());
         lblNama.setFont(new Font("Arial", Font.BOLD, 17));
         lblNama.setForeground(borderColor.darker());
         lblNama.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // 🔥 2. DESKRIPSI PRODUK (YANG DITAMBAHKAN)
+        String deskripsi = produk.getDeskripsi();
+        if (deskripsi == null || deskripsi.isEmpty()) {
+            deskripsi = "Deskripsi tidak tersedia";
+        }
+        
+        // 🔥 Potong deskripsi jika terlalu panjang
+        String shortDesc = deskripsi;
+        if (deskripsi.length() > 100) {
+            shortDesc = deskripsi.substring(0, 97) + "...";
+        }
+        
+        JTextArea txtDeskripsi = new JTextArea(shortDesc);
+        txtDeskripsi.setEditable(false);
+        txtDeskripsi.setLineWrap(true);
+        txtDeskripsi.setWrapStyleWord(true);
+        txtDeskripsi.setFont(new Font("Arial", Font.PLAIN, 11));
+        txtDeskripsi.setBackground(new Color(250, 250, 250));
+        txtDeskripsi.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Deskripsi"),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        txtDeskripsi.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // 🔥 Tooltip dengan deskripsi lengkap
+        txtDeskripsi.setToolTipText("<html><b>Deskripsi Lengkap:</b><br>" + 
+                                  deskripsi.replace("\n", "<br>") + "</html>");
+        card.setToolTipText("<html><b>" + produk.getNama() + "</b><br>" + 
+                           "Harga: " + formatRupiah(produk.getHarga()) + "<br>" +
+                           "Deskripsi: " + deskripsi + "</html>");
+
+        // 🔥 3. HARGA PRODUK
         NumberFormat rupiah = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"));
         JLabel lblHarga = new JLabel("💰 Price: " + rupiah.format(produk.getHarga()));
         lblHarga.setFont(new Font("Arial", Font.BOLD, 14));
         lblHarga.setForeground(new Color(231, 76, 60));
         lblHarga.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // 🔥 TAMBAHKAN KOMPONEN KE KARTU
         card.add(lblNama);
-        card.add(Box.createVerticalStrut(5));
+        card.add(Box.createVerticalStrut(8));
+        card.add(txtDeskripsi);
+        card.add(Box.createVerticalStrut(8));
         card.add(lblHarga);
         card.add(Box.createVerticalStrut(15));
 
+        // 🔥 4. PANEL JUMLAH (QUANTITY)
         JPanel qtyPanel = new JPanel(new FlowLayout());
         JLabel lblJumlah = new JLabel("0");
         lblJumlah.setFont(new Font("Arial", Font.BOLD, 16));
@@ -190,7 +228,7 @@ public class ProdukPanel extends JPanel {
         JButton btnPlus = new JButton("+");
         JButton btnMinus = new JButton("−");
 
-        // ✅ STYLING TOMBOL +/- YANG LEBIH BAIK
+        // 🔥 Styling tombol minus
         btnMinus.setFont(new Font("Arial", Font.BOLD, 16));
         btnMinus.setBackground(new Color(220, 50, 50));
         btnMinus.setForeground(Color.WHITE);
@@ -199,6 +237,7 @@ public class ProdukPanel extends JPanel {
         btnMinus.setOpaque(true);
         btnMinus.setPreferredSize(new Dimension(35, 35));
 
+        // 🔥 Styling tombol plus
         btnPlus.setFont(new Font("Arial", Font.BOLD, 16));
         btnPlus.setBackground(new Color(50, 180, 50));
         btnPlus.setForeground(Color.WHITE);
@@ -207,12 +246,14 @@ public class ProdukPanel extends JPanel {
         btnPlus.setOpaque(true);
         btnPlus.setPreferredSize(new Dimension(35, 35));
 
+        // 🔥 Event listener untuk tombol plus
         btnPlus.addActionListener(e -> {
             int q = Integer.parseInt(lblJumlah.getText()) + 1;
             lblJumlah.setText(String.valueOf(q));
             updateTotalHarga(produk.getHarga(), 1);
         });
 
+        // 🔥 Event listener untuk tombol minus
         btnMinus.addActionListener(e -> {
             int q = Integer.parseInt(lblJumlah.getText());
             if (q > 0) {
@@ -224,7 +265,6 @@ public class ProdukPanel extends JPanel {
         qtyPanel.add(new JLabel("Jumlah:"));
         qtyPanel.add(btnMinus);
         
-        // ✅ PANEL UNTUK QUANTITY DENGAN BORDER
         JPanel quantityPanel = new JPanel(new BorderLayout());
         quantityPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         quantityPanel.setPreferredSize(new Dimension(50, 35));
@@ -237,6 +277,7 @@ public class ProdukPanel extends JPanel {
         card.add(qtyPanel);
         card.add(Box.createVerticalStrut(15));
 
+        // 🔥 5. TOMBOL BUY NOW
         JButton btnBuy = new JButton("🛒 BUY NOW");
         btnBuy.setFont(new Font("Arial", Font.BOLD, 14));
         btnBuy.setBackground(borderColor);
@@ -248,22 +289,34 @@ public class ProdukPanel extends JPanel {
         btnBuy.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnBuy.setPreferredSize(new Dimension(180, 45));
 
+        // 🔥 Event listener untuk BUY NOW
         btnBuy.addActionListener(e -> {
             int qty = Integer.parseInt(lblJumlah.getText());
             if (qty > 0) {
                 controller.tambahKeKeranjang(produk, qty);
                 JOptionPane.showMessageDialog(this,
-                        "✅ " + qty + "x " + produk.getNama() + " ditambahkan!",
+                        "✅ " + qty + "x " + produk.getNama() + " ditambahkan ke keranjang!",
                         "Berhasil",
                         JOptionPane.INFORMATION_MESSAGE);
                 lblJumlah.setText("0");
                 updateCartDisplay();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "⚠️ Pilih jumlah terlebih dahulu!",
+                        "Peringatan",
+                        JOptionPane.WARNING_MESSAGE);
             }
         });
 
         card.add(btnBuy);
 
         return card;
+    }
+
+    // 🔥 HELPER METHOD untuk format rupiah
+    private String formatRupiah(BigDecimal harga) {
+        NumberFormat rupiah = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"));
+        return rupiah.format(harga);
     }
 
     private Color getCategoryColor(String kategori) {
@@ -277,18 +330,12 @@ public class ProdukPanel extends JPanel {
 
     private void updateTotalHarga(BigDecimal harga, int qty) {
         totalHarga = totalHarga.add(harga.multiply(BigDecimal.valueOf(qty)));
-        lblTotalHarga.setText(
-                NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
-                        .format(totalHarga)
-        );
+        lblTotalHarga.setText(formatRupiah(totalHarga));
     }
 
     private void updateCartDisplay() {
         totalHarga = controller.getTotalKeranjang();
-        lblTotalHarga.setText(
-                NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
-                        .format(totalHarga)
-        );
+        lblTotalHarga.setText(formatRupiah(totalHarga));
     }
 
     private void checkout() {
@@ -300,7 +347,7 @@ public class ProdukPanel extends JPanel {
             return;
         }
 
-        // Checkout dialog
+        // 🔥 Dialog checkout dengan input data pelanggan
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
         panel.add(new JLabel("Nama Pemesan:"));
         JTextField txtNama = new JTextField();
@@ -314,36 +361,86 @@ public class ProdukPanel extends JPanel {
         JTextField txtEmail = new JTextField();
         panel.add(txtEmail);
         
-        panel.add(new JLabel("Jadwal (yy-xx-zz):"));
-        JTextField txtJadwal = new JTextField("yy-xx-zz");
+        panel.add(new JLabel("Jadwal (dd-MM-yyyy):"));
+        JTextField txtJadwal = new JTextField();
         panel.add(txtJadwal);
         
-        NumberFormat rupiahFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"));
         panel.add(new JLabel("Total:"));
-        panel.add(new JLabel(rupiahFormat.format(totalHarga)));
+        panel.add(new JLabel(formatRupiah(totalHarga)));
         
         int result = JOptionPane.showConfirmDialog(this, panel, "Checkout", 
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         
         if (result == JOptionPane.OK_OPTION) {
-            if (txtNama.getText().trim().isEmpty()) {
+            String nama = txtNama.getText().trim();
+            String telepon = txtTelepon.getText().trim();
+            String email = txtEmail.getText().trim();
+            String jadwal = txtJadwal.getText().trim();
+            
+            if (nama.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Nama harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            JOptionPane.showMessageDialog(this,
-                "✅ Checkout berhasil!\nTotal: " + rupiahFormat.format(totalHarga),
-                "Sukses",
-                JOptionPane.INFORMATION_MESSAGE);
+            // 🔥 Ambil produk dari keranjang untuk detail
+            List<Produk> keranjang = controller.getKeranjang();
+            StringBuilder produkDetail = new StringBuilder();
             
-            controller.clearCart();
-            totalHarga = BigDecimal.ZERO;
-            lblTotalHarga.setText("Rp 0");
+            for (Produk p : keranjang) {
+                produkDetail.append(p.getNama())
+                           .append(" (")
+                           .append(p.getJenis())
+                           .append("), ");
+            }
+            
+            // 🔥 Hapus koma terakhir
+            String produkString = produkDetail.toString();
+            if (produkString.length() > 2) {
+                produkString = produkString.substring(0, produkString.length() - 2);
+            }
+            
+            // 🔥 Simpan ke riwayat melalui riwayatPanel
+            if (riwayatPanel != null) {
+                boolean success = riwayatPanel.tambahPesananDariCheckout(
+                    nama, telepon, totalHarga, produkString, email, jadwal
+                );
+                
+                if (success) {
+                    // 🔥 Konfirmasi checkout berhasil
+                    JOptionPane.showMessageDialog(this,
+                        "✅ Checkout berhasil!\n" +
+                        "Nama: " + nama + "\n" +
+                        "Total: " + formatRupiah(totalHarga) + "\n" +
+                        "Status: PROSES\n" +
+                        "Lihat tab '📋 RIWAYAT' untuk melihat detail pesanan.",
+                        "Sukses",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // 🔥 Reset keranjang
+                    controller.clearCart();
+                    totalHarga = BigDecimal.ZERO;
+                    lblTotalHarga.setText("Rp 0");
+                    
+                    // 🔥 Otomatis pindah ke tab Riwayat
+                    if (getParent() != null && getParent().getParent() != null) {
+                        Container container = getParent().getParent();
+                        if (container instanceof JTabbedPane) {
+                            JTabbedPane tabPane = (JTabbedPane) container;
+                            tabPane.setSelectedIndex(1); // Index 1 adalah tab Riwayat
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "❌ Gagal menyimpan pesanan ke database!",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "⚠️ Riwayat panel tidak tersedia!", 
+                    "Warning", 
+                    JOptionPane.WARNING_MESSAGE);
+            }
         }
-    }
-
-    public void setRiwayatPanel(RiwayatPesananCRUDPanel riwayatPanel) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setRiwayatPanel'");
     }
 }

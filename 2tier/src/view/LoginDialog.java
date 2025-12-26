@@ -49,7 +49,7 @@ public class LoginDialog extends JDialog {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        JLabel titleLabel = new JLabel("📸 PANESYA STUDIO", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel(" PANESYA STUDIO", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(new Color(41, 128, 185));
         formPanel.add(titleLabel, gbc);
@@ -72,7 +72,7 @@ public class LoginDialog extends JDialog {
         gbc.gridwidth = 1;
         gbc.insets = new Insets(10, 0, 10, 10);
         gbc.anchor = GridBagConstraints.LINE_END;
-        JLabel lblUser = new JLabel("👤 Username:");
+        JLabel lblUser = new JLabel(" Username:");
         lblUser.setFont(new Font("Arial", Font.BOLD, 13));
         lblUser.setForeground(new Color(60, 60, 60));
         formPanel.add(lblUser, gbc);
@@ -143,7 +143,7 @@ public class LoginDialog extends JDialog {
         // Info
         gbc.gridy = 7;
         gbc.insets = new Insets(15, 0, 0, 0);
-        JLabel lblInfo = new JLabel("💡 Gunakan username/password apapun untuk demo", SwingConstants.CENTER);
+        JLabel lblInfo = new JLabel(" Gunakan username/password apapun untuk demo", SwingConstants.CENTER);
         lblInfo.setFont(new Font("Arial", Font.ITALIC, 11));
         lblInfo.setForeground(new Color(150, 150, 150));
         formPanel.add(lblInfo, gbc);

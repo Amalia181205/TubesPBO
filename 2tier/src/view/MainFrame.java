@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 public class MainFrame extends JFrame {
     private JTabbedPane tabbedPane;
     private ProdukPanel produkPanel;
-    private RiwayatPesananCRUDPanel riwayatPanel; // 🔥 GANTI KE CRUDPanel
+    private RiwayatPesananCRUDPanel riwayatPanel;
     private Timer statusTimer;
     private JScrollPane mainScrollPane;
     
@@ -18,7 +18,7 @@ public class MainFrame extends JFrame {
         setupFrame();
         startStatusAnimation();
         
-        // 🔥 SETUP INTEGRASI
+        // 🔥 SETUP INTEGRASI - PENTING!
         setupIntegration();
     }
     
@@ -62,7 +62,7 @@ public class MainFrame extends JFrame {
         
         // Create panels
         produkPanel = new ProdukPanel();
-        riwayatPanel = new RiwayatPesananCRUDPanel(); // 🔥 INI CRUDPanel
+        riwayatPanel = new RiwayatPesananCRUDPanel();
         
         // Custom tab renderer
         tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
@@ -117,11 +117,14 @@ public class MainFrame extends JFrame {
         mainContainer.add(footerPanel, BorderLayout.SOUTH);
     }
     
-    // 🔥 METHOD UNTUK INTEGRASI
+    // 🔥 METHOD UNTUK INTEGRASI - PENTING!
     private void setupIntegration() {
         // Hubungkan ProdukPanel dengan RiwayatPesananCRUDPanel
         produkPanel.setRiwayatPanel(riwayatPanel);
         System.out.println("✅ Integrasi berhasil: ProdukPanel -> RiwayatPesananCRUDPanel");
+        System.out.println("   - Setiap checkout akan otomatis masuk ke Riwayat Pesanan");
+        System.out.println("   - Data akan tersimpan di database");
+        System.out.println("   - Tab akan otomatis pindah ke Riwayat setelah checkout");
     }
     
     private JPanel createHeaderPanel() {
@@ -255,6 +258,10 @@ public class MainFrame extends JFrame {
                 "<html><div style='text-align: center;'>"
                 + "<h2 style='color: #2980b9;'>🌟 Selamat Datang di Panesya Studio! 🌟</h2>"
                 + "<p>Sistem manajemen pemesanan studio foto siap digunakan.</p>"
+                + "<p><b>Fitur Integrasi:</b></p>"
+                + "<p>✅ Checkout dari Produk -> Otomatis masuk ke Riwayat</p>"
+                + "<p>✅ Tab otomatis pindah ke Riwayat setelah checkout</p>"
+                + "<p>✅ Data tersimpan permanen di database</p>"
                 + "</div></html>",
                 "Welcome",
                 JOptionPane.INFORMATION_MESSAGE);
@@ -290,6 +297,7 @@ public class MainFrame extends JFrame {
             try {
                 new MainFrame();
                 System.out.println("✅ MainFrame berhasil dijalankan!");
+                System.out.println("✅ Sistem integrasi Produk -> Riwayat siap digunakan!");
             } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null,
