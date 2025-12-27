@@ -58,4 +58,4 @@ public class PanesyaStudioApp {
             System.err.println("❌ Error checking database: " + e.getMessage());
         }
     }
-}
+} // LAPTONYA NGEHANG PAK :(
